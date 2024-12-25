@@ -2,49 +2,32 @@
 #define DATALOGGER_H
 
 #include <cstddef>
-#include <hdf5/serial/H5Cpp.h>
-#include <vector>
 #include <unordered_map>
+#include <string>
+#include <vector>
 
-
-namespace DataLogger {
-
-	enum class TYPE {
+namespace DataLogger{
+	enum class TYPE{
 		INT,
 		FLOAT
 	};
 
-	struct frame_item{
-		TYPE type;
-		std::vector<int> dims;
-	};
-
-	typedef std::unordered_map<std::string,frame_item> frame;
-
-
-	void make(std::string filepath);
-	class Logger{
-	public:
-		Logger(std::string filepath);
-	};
+	typedef std::unordered_map<std::string, std::pair<TYPE,std::vector<int>>> FrameDescription;
 
 
 	class Buffer{
-		public: 
-			Buffer(frame frame, int rank);
-			~Buffer();
-			frame get_frame(int ind);
-		private:
-			void init_buffer_(const std::string & name, const frame_item & item);
-			void* init_data_(TYPE type, size_t size);
-			void delete_data_(TYPE type, const void* data);
-			template <typename T>
-			std::vector<T> get_data_(void* begin, int size);
-			std::unordered_map<std::string, const void*> buffer_;
-			frame frame_;
-			size_t frame_size_;
-			int rank_;
+	public:
+		Buffer(FrameDescription & desc, size_t len);
+		~Buffer();
+	private:
+		struct Item{
+			TYPE type;
+			void* ptr;
+			std::vector<int> dims;
+			size_t len;
+		};
+		std::unordered_map<std::string,Item> buffer_;
+		void* data_;
 	};
 }
-
 #endif
